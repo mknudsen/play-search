@@ -126,7 +126,9 @@ public class Query {
 
     public long count() throws SearchException {
         try {
-            org.apache.lucene.search.Query luceneQuery = new QueryParser(Search.getLuceneVersion(), "_docID", Search.getAnalyser()).parse(query);
+            org.apache.lucene.queryParser.QueryParser queryParser = new QueryParser(Search.getLuceneVersion(), "_docID", Search.getAnalyser());
+            queryParser.setAllowLeadingWildcard(Boolean.parseBoolean(Play.configuration.getProperty("play.search.enableLeadingWildcards", "false")));
+            org.apache.lucene.search.Query luceneQuery = queryParser.parse(query);
             topDocs = store.getIndexSearcher(clazz.getName()).search(luceneQuery, null, Integer.MAX_VALUE, getSort());
             return topDocs.totalHits;
         } catch (ParseException e) {
@@ -146,8 +148,9 @@ public class Query {
     public List<QueryResult> executeQuery(boolean fetch) throws SearchException {
         try {
             if (topDocs == null) {
-                org.apache.lucene.search.Query luceneQuery =
-                                new QueryParser(Search.getLuceneVersion(), "_docID", Search.getAnalyser()).parse(query);
+                org.apache.lucene.queryParser.QueryParser queryParser = new QueryParser(Search.getLuceneVersion(), "_docID", Search.getAnalyser());
+                queryParser.setAllowLeadingWildcard(Boolean.parseBoolean(Play.configuration.getProperty("play.search.enableLeadingWildcards", "false")));
+                org.apache.lucene.search.Query luceneQuery = queryParser.parse(query);
                 BooleanQuery.setMaxClauseCount(Integer.parseInt(Play.configuration.getProperty(
                                 "play.search.maxClauseCount", "1024")));
                 topDocs = indexSearcher.search(luceneQuery, null, Integer.MAX_VALUE, getSort());
